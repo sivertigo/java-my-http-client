@@ -100,7 +100,7 @@ public class MyHttpClient {
 		 * @param acceptPrm
 		 * @return HttpClientBuilder
 		 */
-		private HttpClientBuilder accept(String acceptPrm) {
+		public HttpClientBuilder accept(String acceptPrm) {
 			this.accept = acceptPrm;
 			this.headerProperty.put(ACCEPT, this.accept);
 			return this;
