@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<BookList>
+ <Book isbn="ISBN978-4-1234-0001-5" author="夏目漱石" title="吾輩は猫である">吾輩は猫である。名前はまだない。どこで生れたかとんと見当がつかぬ。</Book>
+ <Book isbn="ISBN978-4-1234-0002-2" author="H. P. Lovecraft" title="The Cats of Ulthar">It is said that in Ulthar, which lies beyond the river Skai, no man may kill a cat;</Book>
+ <Book isbn="ISBN978-4-1234-0003-9" author="E. T. A. Hoffmann" title="Lebensansichten des Katers Murr">Es ist doch etwas Schönes, Herrliches, Erhabenes um das Leben!</Book>
+</BookList>

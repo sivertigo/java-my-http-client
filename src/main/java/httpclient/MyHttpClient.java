@@ -16,7 +16,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 /**
- * Http Request
+ * Http Request HTTP/1.1対応
  * 
  * @author t.sugawara
  * @version 2021/02/05 新規作成
@@ -26,6 +26,7 @@ public class MyHttpClient {
 
 	public static final String CONTENT_TYPE = "Content-Type";
 	public static final String ACCEPT = "Accept";
+	public static final String COOKIE = "Cookie";
 	public static final String AUTHORIZATION = "Authorization";
 
 	// 必須パラメータ
@@ -36,35 +37,47 @@ public class MyHttpClient {
 	private String method = "GET";
 	private int connectTimeOut = 10000;
 	private int readTimeOut = 30000;
+	private String cookie = null;
 	private Boolean useCache = false;
 	private String requestBody = null;
 
 	/* valid HTTP methods */
 	protected static final String[] METHODS = { "GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE", "TRACE" };
-	/* valid content types */
-	protected static final String[] CONTENT_TYPES = { "multipart/form-data", "text/xml", "application/json" };
 
 	public static class HttpClientBuilder {
-
-		/** HTTPヘッダ項目 */
-		private Map<String, String> headerProperty = new HashMap<String, String>();
-		// 必須パラメータ
-		private URL url;
-		private String contentType;
+		// These parameters are used for sending.
+		/* required parameters */
+		/** HTTP Method */
 		private String method = "GET";
-		// 任意パラメータ
+		/** URL of the destination host */
+		private URL url;
+		/** The media type of the request body */
+		private String contentType;
+
+		/* optional parameters */
+		/** A map of HTTP header property */
+		private Map<String, String> headerProperty = new HashMap<String, String>();
+		/** The type of media the client allow to recieve */
 		private String accept = null;
+		/** the timeout in making the initial connection */
 		private int connectTimeOut = 10000;
+		/** the timeout on waiting to read data */
 		private int readTimeOut = 30000;
-		private Boolean cookie = false;
-		private Boolean useCache = false;
+		/** The Cookie to set header */
+		private String cookie = null;
+		/** query parameter */
 		private String queryString = "";
+		/** Information of proxy server to use */
 		private Proxy proxyServer = null;
+		/** The flag to indicate proxy is set */
 		private Boolean isProxySet = false;
+		/** The content of Http request */
 		private String requestBody = null;
+		/** The flag to indicate wheter to use cache */
+		private Boolean isUseCache = false;
 
 		/**
-		 * メソッドにGETを設定する.
+		 * Set GET as HTTP Request Method.
 		 * 
 		 * @return MyHttpRequestBuilder
 		 */
@@ -74,7 +87,7 @@ public class MyHttpClient {
 		}
 
 		/**
-		 * メソッドにPOSTを設定する.
+		 * Set POST as HTTP Request Method.
 		 * 
 		 * @return MyHttpRequestBuilder
 		 */
@@ -107,13 +120,25 @@ public class MyHttpClient {
 		};
 
 		/**
+		 * Cookieを設定する.
+		 * 
+		 * @param cookie
+		 * @return HttpClientBuilder
+		 */
+		public HttpClientBuilder cookie(String cookie) {
+			this.cookie = cookie;
+			this.headerProperty.put(COOKIE, this.cookie);
+			return this;
+		};
+
+		/**
 		 * useCacheを設定する.
 		 * 
 		 * @param isUseCache
 		 * @return HttpClientBuilder
 		 */
-		private HttpClientBuilder useCache(Boolean isUseCache) {
-			this.useCache = isUseCache;
+		public HttpClientBuilder useCache(Boolean isUseCache) {
+			this.isUseCache = isUseCache;
 			return this;
 		};
 
@@ -169,11 +194,11 @@ public class MyHttpClient {
 		/**
 		 * Proxyサーバを設定する.
 		 * 
-		 * @param proxy
+		 * @param proxyServer
 		 * @return HttpClientBuilder
 		 */
-		public HttpClientBuilder proxy(Proxy proxy) {
-			this.proxyServer = proxy;
+		public HttpClientBuilder proxy(Proxy proxyServer) {
+			this.proxyServer = proxyServer;
 			this.isProxySet = true;
 			return this;
 		}
@@ -255,11 +280,12 @@ public class MyHttpClient {
 					con = (HttpURLConnection) this.url.openConnection();
 				}
 				con.setRequestMethod(this.method);
-				switch (this.method) {
-				case "GET":
+
+				if (this.method.equals("GET")) {
 					con.setDoOutput(true);
 					con.setDoInput(true);
-					con.setUseCaches(this.useCache);
+					con.setUseCaches(this.isUseCache);
+					// Keep-Aliveを利用せず強制的に切る設定
 					con.setRequestProperty("Connection", "close");
 
 					// false: 接続先で3XXが返されてもリダイレクトを行わず、明示的な接続先URLのみにアクセスする。
@@ -272,7 +298,7 @@ public class MyHttpClient {
 					}
 					System.out.println(con.getHeaderField("Content-Type"));
 					System.out.println(con.getResponseCode());
-					// ●ボディ部
+					// ボディ部
 					StringBuilder sb = new StringBuilder();
 					String line = null;
 					reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -280,11 +306,11 @@ public class MyHttpClient {
 						sb.append(line).append("\n");
 					}
 					System.out.println(sb.toString());
-					break;
-				case "POST":
+				} else if (this.method.equals("POST")) {
 					con.setDoOutput(true);
 					con.setDoInput(true);
-					con.setUseCaches(this.useCache);
+					con.setUseCaches(this.isUseCache);
+					// Keep-Aliveを利用せず強制的に切る設定
 					con.setRequestProperty("Connection", "close");
 
 					// false: 接続先で3XXが返されてもリダイレクトを行わず、明示的な接続先URLのみにアクセスする。
@@ -321,9 +347,6 @@ public class MyHttpClient {
 
 					System.out.println(ssb.toString());
 
-					break;
-				default:
-					break;
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
